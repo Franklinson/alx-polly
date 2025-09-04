@@ -1,29 +1,65 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { register } from '@/app/lib/actions/auth-actions';
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { register } from "@/app/lib/actions/auth-actions";
 
 export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPasswordHints, setShowPasswordHints] = useState(false);
+
+  const validatePasswordStrength = (pwd: string) => {
+    const requirements = [
+      { regex: /.{8,}/, text: "At least 8 characters" },
+      { regex: /[a-z]/, text: "One lowercase letter" },
+      { regex: /[A-Z]/, text: "One uppercase letter" },
+      { regex: /\d/, text: "One number" },
+      {
+        regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+        text: "One special character",
+      },
+    ];
+
+    return requirements.map((req) => ({
+      ...req,
+      met: req.regex.test(pwd),
+    }));
+  };
+
+  const passwordRequirements = validatePasswordStrength(password);
+  const isPasswordValid = passwordRequirements.every((req) => req.met);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
     const formData = new FormData(event.currentTarget);
-    const name = formData.get('name') as string;
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const confirmPassword = formData.get('confirmPassword') as string;
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (!isPasswordValid) {
+      setError("Password does not meet security requirements");
       setLoading(false);
       return;
     }
@@ -34,7 +70,7 @@ export default function RegisterPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      window.location.href = '/polls'; // Full reload to pick up session
+      window.location.href = "/polls"; // Full reload to pick up session
     }
   };
 
@@ -42,61 +78,93 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen bg-slate-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Create an Account</CardTitle>
-          <CardDescription className="text-center">Sign up to start creating and sharing polls</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">
+            Create an Account
+          </CardTitle>
+          <CardDescription className="text-center">
+            Sign up to start creating and sharing polls
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input 
-                id="name" 
+              <Input
+                id="name"
                 name="name"
-                type="text" 
-                placeholder="John Doe" 
+                type="text"
+                placeholder="John Doe"
                 required
+                maxLength={100}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
+              <Input
+                id="email"
                 name="email"
-                type="email" 
-                placeholder="your@email.com" 
+                type="email"
+                placeholder="your@email.com"
                 required
                 autoComplete="email"
+                maxLength={254}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
+              <Input
+                id="password"
                 name="password"
-                type="password" 
+                type="password"
                 required
                 autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setShowPasswordHints(true)}
+                className={
+                  !isPasswordValid && password.length > 0
+                    ? "border-red-500"
+                    : ""
+                }
               />
+              {showPasswordHints && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Password Requirements:
+                  </p>
+                  <ul className="space-y-1">
+                    {passwordRequirements.map((req, index) => (
+                      <li
+                        key={index}
+                        className={`text-xs flex items-center ${req.met ? "text-green-600" : "text-red-500"}`}
+                      >
+                        <span className="mr-2">{req.met ? "✓" : "✗"}</span>
+                        {req.text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input 
-                id="confirmPassword" 
+              <Input
+                id="confirmPassword"
                 name="confirmPassword"
-                type="password" 
+                type="password"
                 required
                 autoComplete="new-password"
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Registering...' : 'Register'}
+              {loading ? "Registering..." : "Register"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-slate-500">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link href="/login" className="text-blue-600 hover:underline">
               Login
             </Link>

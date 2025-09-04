@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   user?: {
@@ -31,55 +31,64 @@ export function Header({ user }: HeaderProps) {
         <Link href="/" className="text-xl font-bold text-slate-800">
           ALX Polly
         </Link>
-        
+
         <nav className="hidden md:flex items-center space-x-6">
           {isAuthenticated ? (
             <>
-              <Link 
-                href="/polls" 
-                className={`text-slate-600 hover:text-slate-900 ${pathname === '/polls' ? 'font-medium text-slate-900' : ''}`}
+              <Link
+                href="/polls"
+                className={`text-slate-600 hover:text-slate-900 ${pathname === "/polls" ? "font-medium text-slate-900" : ""}`}
               >
                 My Polls
               </Link>
-              <Link 
-                href="/create" 
-                className={`text-slate-600 hover:text-slate-900 ${pathname === '/create' ? 'font-medium text-slate-900' : ''}`}
+              <Link
+                href="/create"
+                className={`text-slate-600 hover:text-slate-900 ${pathname === "/create" ? "font-medium text-slate-900" : ""}`}
               >
                 Create Poll
               </Link>
             </>
           ) : (
             <>
-              <Link 
-                href="/login" 
-                className={`text-slate-600 hover:text-slate-900 ${pathname === '/login' ? 'font-medium text-slate-900' : ''}`}
+              <Link
+                href="/login"
+                className={`text-slate-600 hover:text-slate-900 ${pathname === "/login" ? "font-medium text-slate-900" : ""}`}
               >
                 Login
               </Link>
-              <Link 
-                href="/register" 
-                className={`text-slate-600 hover:text-slate-900 ${pathname === '/register' ? 'font-medium text-slate-900' : ''}`}
+              <Link
+                href="/register"
+                className={`text-slate-600 hover:text-slate-900 ${pathname === "/register" ? "font-medium text-slate-900" : ""}`}
               >
                 Register
               </Link>
             </>
           )}
         </nav>
-        
+
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
             <>
-              <Button asChild variant="outline" className="hidden md:inline-flex">
+              <Button
+                asChild
+                variant="outline"
+                className="hidden md:inline-flex"
+              >
                 <Link href="/create">Create Poll</Link>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 rounded-full"
+                  >
                     <Avatar className="h-8 w-8">
                       {user.image ? (
                         <AvatarImage src={user.image} alt={user.name} />
                       ) : (
-                        <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       )}
                     </Avatar>
                   </Button>
@@ -88,14 +97,33 @@ export function Header({ user }: HeaderProps) {
                   <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Link href="/profile" className="w-full">Profile</Link>
+                    <Link href="/profile" className="w-full">
+                      Profile
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/settings" className="w-full">Settings</Link>
+                    <Link href="/settings" className="w-full">
+                      Settings
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link href="/login" className="w-full">Logout</Link>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      try {
+                        const { logout } = await import(
+                          "@/app/lib/actions/auth-actions"
+                        );
+                        await logout();
+                        window.location.href = "/login";
+                      } catch (error) {
+                        console.error("Logout failed:", error);
+                        // Fallback - still redirect to login
+                        window.location.href = "/login";
+                      }
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

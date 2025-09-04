@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import type { Session, User } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
+import type { Session, User } from "@supabase/supabase-js";
 
-const AuthContext = createContext<{ 
+const AuthContext = createContext<{
   session: Session | null;
   user: User | null;
   signOut: () => void;
   loading: boolean;
-}>({ 
-  session: null, 
+}>({
+  session: null,
   user: null,
   signOut: () => {},
   loading: true,
@@ -27,24 +27,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
       if (error) {
-        console.error('Error fetching user:', error);
+        // Log error without exposing sensitive details
+        console.error("Authentication error occurred");
       }
       if (mounted) {
         setUser(data.user ?? null);
         setSession(null);
         setLoading(false);
-        console.log('AuthContext: Initial user loaded', data.user);
+        // User loaded successfully
       }
     };
 
     getUser();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      // Do not set loading to false here, only after initial load
-      console.log('AuthContext: Auth state changed', _event, session, session?.user);
-    });
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        // Do not set loading to false here, only after initial load
+        // Auth state updated
+      },
+    );
 
     return () => {
       mounted = false;
@@ -56,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
-  console.log('AuthContext: user', user);
+  // Auth context ready
   return (
     <AuthContext.Provider value={{ session, user, signOut, loading }}>
       {children}

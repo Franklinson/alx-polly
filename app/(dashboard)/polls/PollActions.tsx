@@ -18,10 +18,31 @@ interface PollActionsProps {
 
 export default function PollActions({ poll }: PollActionsProps) {
   const { user } = useAuth();
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this poll?")) {
-      await deletePoll(poll.id);
-      window.location.reload();
+    if (deleteLoading) return; // Prevent double-clicks
+
+    if (
+      confirm(
+        "Are you sure you want to delete this poll? This action cannot be undone.",
+      )
+    ) {
+      setDeleteLoading(true);
+      try {
+        const result = await deletePoll(poll.id);
+        if (result.error) {
+          alert(`Failed to delete poll: ${result.error}`);
+        } else {
+          // Poll deleted successfully - reload the page
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error("Delete error:", error);
+        alert("An error occurred while deleting the poll. Please try again.");
+      } finally {
+        setDeleteLoading(false);
+      }
     }
   };
 
@@ -44,8 +65,13 @@ export default function PollActions({ poll }: PollActionsProps) {
           <Button asChild variant="outline" size="sm">
             <Link href={`/polls/${poll.id}/edit`}>Edit</Link>
           </Button>
-          <Button variant="destructive" size="sm" onClick={handleDelete}>
-            Delete
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? "Deleting..." : "Delete"}
           </Button>
         </div>
       )}

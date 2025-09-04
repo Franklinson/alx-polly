@@ -21,6 +21,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
+      // Clear any stale data and redirect
+      document.cookie.split(";").forEach(function (c) {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
       router.push("/login");
     }
   }, [user, loading, router]);
@@ -33,13 +39,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <p>Loading user session...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Verifying authentication...</p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Authentication required</p>
+          <Button onClick={() => router.push("/login")}>Go to Login</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
